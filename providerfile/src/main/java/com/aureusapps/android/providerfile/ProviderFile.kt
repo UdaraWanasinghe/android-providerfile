@@ -78,7 +78,7 @@ import java.io.File
  *
  * @see android.provider.DocumentsContract
  */
-abstract class DocumentFile internal constructor(
+abstract class ProviderFile internal constructor(
     /**
      * Return the parent file of this document. Only defined inside of the
      * user-selected tree; you can never escape above the top of the tree.
@@ -89,7 +89,7 @@ abstract class DocumentFile internal constructor(
      * parent offered here is purely a convenience method, and it may be
      * incorrect if the underlying tree structure changes.
      */
-    val parentFile: DocumentFile?
+    val parentFile: ProviderFile?
 ) {
 
     /**
@@ -105,7 +105,7 @@ abstract class DocumentFile internal constructor(
      * created from [.fromSingleUri].
      * @see android.provider.DocumentsContract.createDocument
      */
-    abstract fun createFile(mimeType: String, displayName: String): DocumentFile?
+    abstract fun createFile(mimeType: String, displayName: String): ProviderFile?
 
     /**
      * Create a new directory as a direct child of this directory.
@@ -116,7 +116,7 @@ abstract class DocumentFile internal constructor(
      * created from [.fromSingleUri].
      * @see android.provider.DocumentsContract.createDocument
      */
-    abstract fun createDirectory(displayName: String): DocumentFile?
+    abstract fun createDirectory(displayName: String): ProviderFile?
 
     /**
      * Return a Uri for the underlying document represented by this file. This
@@ -242,7 +242,7 @@ abstract class DocumentFile internal constructor(
      * created from [.fromSingleUri].
      * @see android.provider.DocumentsContract.buildChildDocumentsUriUsingTree
      */
-    abstract fun listFiles(): Array<DocumentFile>
+    abstract fun listFiles(): Array<ProviderFile>
 
     /**
      * Search through [.listFiles] for the first document matching the
@@ -252,7 +252,7 @@ abstract class DocumentFile internal constructor(
      * @throws UnsupportedOperationException when working with a single document
      * created from [.fromSingleUri].
      */
-    fun findFile(displayName: String): DocumentFile? {
+    fun findFile(displayName: String): ProviderFile? {
         for (doc in listFiles()) {
             if (displayName == doc.name) {
                 return doc
@@ -289,7 +289,7 @@ abstract class DocumentFile internal constructor(
         const val TAG = "DocumentFile"
 
         /**
-         * Create a [DocumentFile] representing the filesystem tree rooted at
+         * Create a [ProviderFile] representing the filesystem tree rooted at
          * the given [File]. This doesn't give you any additional access to the
          * underlying files beyond what your app already has.
          *
@@ -297,12 +297,12 @@ abstract class DocumentFile internal constructor(
          * [.getUri] will return `file://` Uris for files explored
          * through this tree.
          */
-        fun fromFile(file: File): DocumentFile {
+        fun fromFile(file: File): ProviderFile {
             return RawDocumentFile(null, file)
         }
 
         /**
-         * Create a [DocumentFile] representing the single document at the
+         * Create a [ProviderFile] representing the single document at the
          * given [Uri]. This is only useful on devices running
          * [Build.VERSION_CODES.KITKAT] or later, and will return
          * `null` when called on earlier platform versions.
@@ -311,12 +311,12 @@ abstract class DocumentFile internal constructor(
          * [Intent.ACTION_OPEN_DOCUMENT] or
          * [Intent.ACTION_CREATE_DOCUMENT] request.
          */
-        fun fromSingleUri(context: Context, singleUri: Uri): DocumentFile? {
+        fun fromSingleUri(context: Context, singleUri: Uri): ProviderFile? {
             return SingleDocumentFile(null, context, singleUri)
         }
 
         /**
-         * Create a [DocumentFile] representing the document tree rooted at
+         * Create a [ProviderFile] representing the document tree rooted at
          * the given [Uri]. This is only useful on devices running
          * [Build.VERSION_CODES.LOLLIPOP] or later, and will return
          * `null` when called on earlier platform versions.
@@ -324,7 +324,7 @@ abstract class DocumentFile internal constructor(
          * @param treeUri the [Intent.getData] from a successful
          * [Intent.ACTION_OPEN_DOCUMENT_TREE] request.
          */
-        fun fromTreeUri(context: Context, treeUri: Uri): DocumentFile? {
+        fun fromTreeUri(context: Context, treeUri: Uri): ProviderFile? {
             return if (Build.VERSION.SDK_INT >= 21) {
                 var documentId = DocumentsContractCompat.getTreeDocumentId(treeUri)
                 if (DocumentsContractCompat.isDocumentUri(context, treeUri)) {

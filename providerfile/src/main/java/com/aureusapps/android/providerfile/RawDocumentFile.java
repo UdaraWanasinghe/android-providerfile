@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.documentfile.provider;
+package com.aureusapps.android.providerfile;
 
 import android.net.Uri;
 import android.util.Log;
@@ -27,17 +27,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-class RawDocumentFile extends DocumentFile {
+class RawDocumentFile extends ProviderFile {
     private File mFile;
 
-    RawDocumentFile(@Nullable DocumentFile parent, File file) {
+    RawDocumentFile(@Nullable ProviderFile parent, File file) {
         super(parent);
         mFile = file;
     }
 
     @Override
     @Nullable
-    public DocumentFile createFile(@NonNull String mimeType, @NonNull String displayName) {
+    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
         // Tack on extension when valid MIME type provided
         final String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
         if (extension != null) {
@@ -58,7 +58,7 @@ class RawDocumentFile extends DocumentFile {
 
     @Override
     @Nullable
-    public DocumentFile createDirectory(@NonNull String displayName) {
+    public ProviderFile createDirectory(@NonNull String displayName) {
         final File target = new File(mFile, displayName);
         if (target.isDirectory() || target.mkdir()) {
             return new RawDocumentFile(this, target);
@@ -136,15 +136,15 @@ class RawDocumentFile extends DocumentFile {
 
     @NonNull
     @Override
-    public DocumentFile[] listFiles() {
-        final ArrayList<DocumentFile> results = new ArrayList<>();
+    public ProviderFile[] listFiles() {
+        final ArrayList<ProviderFile> results = new ArrayList<>();
         final File[] files = mFile.listFiles();
         if (files != null) {
             for (File file : files) {
                 results.add(new RawDocumentFile(this, file));
             }
         }
-        return results.toArray(new DocumentFile[0]);
+        return results.toArray(new ProviderFile[0]);
     }
 
     @Override

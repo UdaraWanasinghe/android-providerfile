@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.documentfile.provider;
+package com.aureusapps.android.providerfile;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -25,16 +25,14 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
-@RequiresApi(21)
-class TreeDocumentFile extends DocumentFile {
+class TreeDocumentFile extends ProviderFile {
     private Context mContext;
     private Uri mUri;
 
-    TreeDocumentFile(@Nullable DocumentFile parent, Context context, Uri uri) {
+    TreeDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
         super(parent);
         mContext = context;
         mUri = uri;
@@ -42,7 +40,7 @@ class TreeDocumentFile extends DocumentFile {
 
     @Override
     @Nullable
-    public DocumentFile createFile(@NonNull String mimeType, @NonNull String displayName) {
+    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
         final Uri result = TreeDocumentFile.createFile(mContext, mUri, mimeType, displayName);
         return (result != null) ? new TreeDocumentFile(this, mContext, result) : null;
     }
@@ -60,7 +58,7 @@ class TreeDocumentFile extends DocumentFile {
 
     @Override
     @Nullable
-    public DocumentFile createDirectory(@NonNull String displayName) {
+    public ProviderFile createDirectory(@NonNull String displayName) {
         final Uri result = TreeDocumentFile.createFile(
                 mContext, mUri, DocumentsContract.Document.MIME_TYPE_DIR, displayName);
         return (result != null) ? new TreeDocumentFile(this, mContext, result) : null;
@@ -135,7 +133,7 @@ class TreeDocumentFile extends DocumentFile {
 
     @NonNull
     @Override
-    public DocumentFile[] listFiles() {
+    public ProviderFile[] listFiles() {
         final ContentResolver resolver = mContext.getContentResolver();
         final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(mUri,
                 DocumentsContract.getDocumentId(mUri));
@@ -158,7 +156,7 @@ class TreeDocumentFile extends DocumentFile {
         }
 
         final Uri[] result = results.toArray(new Uri[0]);
-        final DocumentFile[] resultFiles = new DocumentFile[result.length];
+        final ProviderFile[] resultFiles = new ProviderFile[result.length];
         for (int i = 0; i < result.length; i++) {
             resultFiles[i] = new TreeDocumentFile(this, mContext, result[i]);
         }

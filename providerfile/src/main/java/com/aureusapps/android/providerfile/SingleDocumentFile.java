@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.documentfile.provider;
+package com.aureusapps.android.providerfile;
 
 import android.content.Context;
 import android.net.Uri;
@@ -23,23 +23,23 @@ import android.provider.DocumentsContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-class SingleDocumentFile extends DocumentFile {
+class SingleDocumentFile extends ProviderFile {
     private Context mContext;
     private Uri mUri;
 
-    SingleDocumentFile(@Nullable DocumentFile parent, Context context, Uri uri) {
+    SingleDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
         super(parent);
         mContext = context;
         mUri = uri;
     }
 
     @Override
-    public DocumentFile createFile(@NonNull String mimeType, @NonNull String displayName) {
+    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public DocumentFile createDirectory(@NonNull String displayName) {
+    public ProviderFile createDirectory(@NonNull String displayName) {
         throw new UnsupportedOperationException();
     }
 
@@ -112,7 +112,7 @@ class SingleDocumentFile extends DocumentFile {
 
     @NonNull
     @Override
-    public DocumentFile[] listFiles() {
+    public ProviderFile[] listFiles() {
         throw new UnsupportedOperationException();
     }
 

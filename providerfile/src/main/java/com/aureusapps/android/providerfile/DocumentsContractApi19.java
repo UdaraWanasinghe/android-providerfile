@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.documentfile.provider;
+package com.aureusapps.android.providerfile;
 
 import static androidx.core.provider.DocumentsContractCompat.DocumentCompat.FLAG_VIRTUAL_DOCUMENT;
 
