@@ -15,21 +15,23 @@
  */
 package com.aureusapps.android.providerfile
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
-import com.aureusapps.android.providerfile.DocumentsContractApi19.canRead
-import com.aureusapps.android.providerfile.DocumentsContractApi19.canWrite
-import com.aureusapps.android.providerfile.DocumentsContractApi19.exists
-import com.aureusapps.android.providerfile.DocumentsContractApi19.getName
-import com.aureusapps.android.providerfile.DocumentsContractApi19.getType
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isDirectory
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isFile
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isVirtual
-import com.aureusapps.android.providerfile.DocumentsContractApi19.lastModified
-import com.aureusapps.android.providerfile.DocumentsContractApi19.length
+import com.aureusapps.android.providerfile.extensions.closeQuietly
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canRead
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canWrite
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.exists
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.getName
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.getType
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isDirectory
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isFile
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isVirtual
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.lastModified
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.length
 
 internal class TreeDocumentFile(
     parent: ProviderFile?,
@@ -92,40 +94,46 @@ internal class TreeDocumentFile(
         return exists(context, uri)
     }
 
-    override fun listFiles(): Array<ProviderFile> {
+    @SuppressLint("Recycle")
+    override fun listFiles(): List<ProviderFile> {
         val resolver = context.contentResolver
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
             uri,
             DocumentsContract.getDocumentId(uri)
         )
-        val results = ArrayList<Uri>()
+        val results = ArrayList<TreeDocumentFile>()
         var c: Cursor? = null
         try {
             c = resolver.query(
-                childrenUri, arrayOf(
-                    DocumentsContract.Document.COLUMN_DOCUMENT_ID
-                ), null, null, null
+                childrenUri,
+                arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
+                null,
+                null,
+                null
             )
-            while (c!!.moveToNext()) {
-                val documentId = c.getString(0)
-                val documentUri = DocumentsContract.buildDocumentUriUsingTree(
-                    uri,
-                    documentId
-                )
-                results.add(documentUri)
+            if (c != null) {
+                while (c.moveToNext()) {
+                    val documentId = c.getString(0)
+                    val documentUri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId)
+                    results.add(
+                        TreeDocumentFile(this, context, documentUri)
+                    )
+                }
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed query: $e")
         } finally {
-            closeQuietly(c)
+            c?.closeQuietly()
         }
-        return results.map { TreeDocumentFile(this, context, it) }.toTypedArray()
+        return results
     }
 
     override fun renameTo(displayName: String): Boolean {
         return try {
             val result = DocumentsContract.renameDocument(
-                context.contentResolver, uri, displayName
+                context.contentResolver,
+                uri,
+                displayName
             )
             if (result != null) {
                 uri = result
@@ -139,13 +147,18 @@ internal class TreeDocumentFile(
     }
 
     companion object {
+
         private fun createFile(
-            context: Context, self: Uri, mimeType: String,
+            context: Context,
+            uri: Uri,
+            mimeType: String,
             displayName: String
         ): Uri? {
             return try {
                 DocumentsContract.createDocument(
-                    context.contentResolver, self, mimeType,
+                    context.contentResolver,
+                    uri,
+                    mimeType,
                     displayName
                 )
             } catch (e: Exception) {
@@ -153,15 +166,5 @@ internal class TreeDocumentFile(
             }
         }
 
-        private fun closeQuietly(closeable: AutoCloseable?) {
-            if (closeable != null) {
-                try {
-                    closeable.close()
-                } catch (rethrown: RuntimeException) {
-                    throw rethrown
-                } catch (ignored: Exception) {
-                }
-            }
-        }
     }
 }

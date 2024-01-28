@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aureusapps.android.providerfile
+package com.aureusapps.android.providerfile.utils
 
 import android.content.Context
 import android.content.Intent
@@ -25,7 +25,7 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.core.provider.DocumentsContractCompat.DocumentCompat
 
-internal object DocumentsContractApi19 {
+internal object DocumentsProviderHelper {
 
     private const val TAG = "DocumentFile"
 

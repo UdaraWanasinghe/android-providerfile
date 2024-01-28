@@ -17,6 +17,7 @@ package com.aureusapps.android.providerfile
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.net.toFile
@@ -24,15 +25,14 @@ import androidx.core.provider.DocumentsContractCompat
 import java.io.File
 
 /**
- * Representation of a document backed by either a
- * [android.provider.DocumentsProvider] or a raw file on disk. This is a
+ * Representation of a files backed by [android.provider.DocumentsProvider],
+ * [android.provider.MediaStore] and a raw file on disk. This is a
  * utility class designed to emulate the traditional [File] interface. It
  * offers a simplified view of a tree of documents, but it has substantial
  * overhead. For optimal performance and a richer feature set, use the
  * [android.provider.DocumentsContract] methods and constants directly.
  *
- *
- * There are several differences between documents and traditional files:
+ * There are several differences between documents, media and traditional files:
  *
  *  * Documents express their display name and MIME type as separate fields,
  * instead of relying on file extensions. Some documents providers may still
@@ -45,8 +45,13 @@ import java.io.File
  *  * Each document has a unique identifier within that provider. This
  * identifier is an *opaque* implementation detail of the provider, and
  * as such it must not be parsed.
- *
- *
+ *  * [android.provider.MediaStore] provides an indexed collection of common
+ *  media types such as Audio, Video, Images filtered by mime type and Files
+ *  collection that is not filtered by specific mime type. It also provides access to
+ *  downloaded files through [android.provider.MediaStore.Downloads] table. The media store
+ *  automatically scans media files based on their mime type. Media store does not
+ *  provide directories. You only get media store uris only by querying
+ *  through the content resolver.
  *
  * Before using this class, first consider if you really need access to an
  * entire subtree of documents. The principle of least privilege dictates that
@@ -77,7 +82,7 @@ import java.io.File
  * [android.provider.DocumentsProvider].
  *
  * @see android.provider.DocumentsProvider
- *
+ * @see android.provider.MediaStore
  * @see android.provider.DocumentsContract
  */
 abstract class ProviderFile internal constructor(
@@ -104,7 +109,8 @@ abstract class ProviderFile internal constructor(
      * extension
      * @return file representing newly created document, or null if failed
      * @throws UnsupportedOperationException when working with a single document
-     * created from [.fromSingleUri].
+     * created from [fromSingleUri] or media store document created from [fromMediaUri].
+     *
      * @see android.provider.DocumentsContract.createDocument
      */
     abstract fun createFile(mimeType: String, displayName: String): ProviderFile?
@@ -121,7 +127,7 @@ abstract class ProviderFile internal constructor(
     abstract fun createDirectory(displayName: String): ProviderFile?
 
     /**
-     * Return a Uri for the underlying document represented by this file. This
+     * Return a Uri for the underlying document or media represented by this file. This
      * can be used with other platform APIs to manipulate or share the
      * underlying content. You can use [.isDocumentUri] to
      * test if the returned Uri is backed by a
@@ -136,16 +142,18 @@ abstract class ProviderFile internal constructor(
     abstract val uri: Uri
 
     /**
-     * Return the display name of this document.
+     * Return the display name of this document or media.
      *
      * @see android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME
+     * @see android.provider.MediaStore.MediaColumns.DISPLAY_NAME
      */
     abstract val name: String?
 
     /**
-     * Return the MIME type of this document.
+     * Return the MIME type of this document or media.
      *
      * @see android.provider.DocumentsContract.Document.COLUMN_MIME_TYPE
+     * @see android.provider.MediaStore.MediaColumns.MIME_TYPE
      */
     abstract val type: String?
 
@@ -180,7 +188,9 @@ abstract class ProviderFile internal constructor(
      * does not exist, or if the modified time is unknown.
      *
      * @return the time when this file was last modified.
+     *
      * @see android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED
+     * @see android.provider.MediaStore.MediaColumns.DATE_MODIFIED
      */
     abstract fun lastModified(): Long
 
@@ -190,7 +200,9 @@ abstract class ProviderFile internal constructor(
      * defined.
      *
      * @return the number of bytes in this file.
+     *
      * @see android.provider.DocumentsContract.Document.COLUMN_SIZE
+     * @see android.provider.MediaStore.MediaColumns.SIZE
      */
     abstract fun length(): Long
 
@@ -244,15 +256,15 @@ abstract class ProviderFile internal constructor(
      * created from [.fromSingleUri].
      * @see android.provider.DocumentsContract.buildChildDocumentsUriUsingTree
      */
-    abstract fun listFiles(): Array<ProviderFile>
+    abstract fun listFiles(): List<ProviderFile>
 
     /**
-     * Search through [.listFiles] for the first document matching the
+     * Search through [listFiles] for the first document matching the
      * given display name. Returns `null` when no matching document is
      * found.
      *
      * @throws UnsupportedOperationException when working with a single document
-     * created from [.fromSingleUri].
+     * created from [fromSingleUri].
      */
     fun findFile(displayName: String): ProviderFile? {
         for (doc in listFiles()) {
@@ -272,17 +284,19 @@ abstract class ProviderFile internal constructor(
      *
      *
      * Some providers may need to create a new document to reflect the rename,
-     * potentially with a different MIME type, so [.getUri] and
-     * [.getType] may change to reflect the rename.
+     * potentially with a different MIME type, so [uri] and
+     * [type] may change to reflect the rename.
      *
      *
      * When renaming a directory, children previously enumerated through
-     * [.listFiles] may no longer be valid.
+     * [listFiles] may no longer be valid.
      *
      * @param displayName the new display name.
      * @return true on success.
+     *
      * @throws UnsupportedOperationException when working with a single document
-     * created from [.fromSingleUri].
+     * created from [fromSingleUri].
+     *
      * @see android.provider.DocumentsContract.renameDocument
      */
     abstract fun renameTo(displayName: String): Boolean
@@ -298,13 +312,16 @@ abstract class ProviderFile internal constructor(
          * underlying files beyond what your app already has.
          *
          *
-         * [.getUri] will return `file://` Uris for files explored
+         * [uri] will return `file://` Uris for files explored
          * through this tree.
          */
         fun fromFile(file: File): ProviderFile {
             return RawDocumentFile(null, file)
         }
 
+        /**
+         * Creates a [ProviderFile] from a file uri.
+         */
         fun fromFileUri(uri: Uri): ProviderFile {
             return RawDocumentFile(null, uri.toFile())
         }
@@ -338,15 +355,21 @@ abstract class ProviderFile internal constructor(
                 documentId = DocumentsContractCompat.getDocumentId(treeUri)
             }
             requireNotNull(documentId) { "Could not get document ID from Uri: $treeUri" }
-            val treeDocumentUri = DocumentsContractCompat.buildDocumentUriUsingTree(treeUri, documentId)
-                ?: throw NullPointerException(
-                    "Failed to build documentUri from a tree: $treeUri"
-                )
+            val treeDocumentUri = DocumentsContractCompat.buildDocumentUriUsingTree(treeUri, documentId) ?: throw NullPointerException(
+                "Failed to build documentUri from a tree: $treeUri"
+            )
             return TreeDocumentFile(null, context, treeDocumentUri)
         }
 
+        /**
+         * Creates a [ProviderFile] from the given media uri.
+         */
         fun fromMediaUri(context: Context, mediaUri: Uri): ProviderFile {
-            return MediaProviderFile(context, mediaUri)
+            if (isMediaUri(mediaUri)) {
+                return MediaProviderFile(context, mediaUri)
+            } else {
+                throw IllegalArgumentException("Given uri is not a media uri")
+            }
         }
 
         /**
@@ -384,5 +407,7 @@ abstract class ProviderFile internal constructor(
                 else -> null
             }
         }
+
     }
+
 }

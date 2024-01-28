@@ -2,6 +2,8 @@ package com.aureusapps.android.providerfile
 
 import android.content.Context
 import android.net.Uri
+import com.aureusapps.android.providerfile.utils.MediaStoreHelper
+import com.aureusapps.android.providerfile.utils.ProviderHelper
 
 class MediaProviderFile(
     private val context: Context,
@@ -17,10 +19,10 @@ class MediaProviderFile(
     }
 
     override val name: String?
-        get() = MediaStoreContract.getName(context, uri)
+        get() = MediaStoreHelper.getName(context, uri)
 
     override val type: String?
-        get() = MediaStoreContract.getType(context, uri)
+        get() = MediaStoreHelper.getType(context, uri)
 
     override val isDirectory: Boolean = false
 
@@ -29,35 +31,35 @@ class MediaProviderFile(
     override val isVirtual: Boolean = false
 
     override fun lastModified(): Long {
-        return MediaStoreContract.lastModified(context, uri)
+        return MediaStoreHelper.lastModified(context, uri)
     }
 
     override fun length(): Long {
-        return MediaStoreContract.length(context, uri)
+        return MediaStoreHelper.length(context, uri)
     }
 
     override fun canRead(): Boolean {
-        return ProviderContract.canRead(context, uri)
+        return ProviderHelper.canRead(context, uri)
     }
 
     override fun canWrite(): Boolean {
-        return ProviderContract.canWrite(context, uri)
+        return ProviderHelper.canWrite(context, uri)
     }
 
     override fun delete(): Boolean {
-        return ProviderContract.delete(context, uri)
+        return ProviderHelper.delete(context, uri)
     }
 
     override fun exists(): Boolean {
-        return MediaStoreContract.exists(context, uri)
+        return MediaStoreHelper.exists(context, uri)
     }
 
-    override fun listFiles(): Array<ProviderFile> {
+    override fun listFiles(): List<ProviderFile> {
         throw UnsupportedOperationException()
     }
 
     override fun renameTo(displayName: String): Boolean {
-        return MediaStoreContract.rename(context, uri, displayName)
+        return MediaStoreHelper.rename(context, uri, displayName)
     }
 
 }

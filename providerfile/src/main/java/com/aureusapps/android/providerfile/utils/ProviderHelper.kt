@@ -1,4 +1,4 @@
-package com.aureusapps.android.providerfile
+package com.aureusapps.android.providerfile.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,9 +7,8 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import com.aureusapps.android.providerfile.extensions.closeQuietly
-import com.aureusapps.android.providerfile.utils.Logger
 
-object ProviderContract {
+object ProviderHelper {
 
     @SuppressLint("Recycle")
     fun queryForString(
@@ -22,7 +21,7 @@ object ProviderContract {
         var cursor: Cursor? = null
         return try {
             cursor = resolver.query(uri, arrayOf(column), null, null, null)
-            if (cursor?.moveToFirst() == true)  {
+            if (cursor?.moveToFirst() == true) {
                 cursor.getString(0) ?: defaultValue
             } else {
                 defaultValue
@@ -46,7 +45,7 @@ object ProviderContract {
         var cursor: Cursor? = null
         return try {
             cursor = resolver.query(uri, arrayOf(column), null, null, null)
-            if (cursor?.moveToFirst() == true)  {
+            if (cursor?.moveToFirst() == true) {
                 cursor.getLong(0)
             } else {
                 defaultValue

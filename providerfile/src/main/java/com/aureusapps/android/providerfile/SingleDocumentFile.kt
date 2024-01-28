@@ -18,16 +18,16 @@ package com.aureusapps.android.providerfile
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import com.aureusapps.android.providerfile.DocumentsContractApi19.canRead
-import com.aureusapps.android.providerfile.DocumentsContractApi19.canWrite
-import com.aureusapps.android.providerfile.DocumentsContractApi19.exists
-import com.aureusapps.android.providerfile.DocumentsContractApi19.getName
-import com.aureusapps.android.providerfile.DocumentsContractApi19.getType
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isDirectory
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isFile
-import com.aureusapps.android.providerfile.DocumentsContractApi19.isVirtual
-import com.aureusapps.android.providerfile.DocumentsContractApi19.lastModified
-import com.aureusapps.android.providerfile.DocumentsContractApi19.length
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canRead
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canWrite
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.exists
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.getName
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.getType
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isDirectory
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isFile
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isVirtual
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.lastModified
+import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.length
 
 internal class SingleDocumentFile(
     parent: ProviderFile?,
@@ -86,7 +86,7 @@ internal class SingleDocumentFile(
         return exists(context, uri)
     }
 
-    override fun listFiles(): Array<ProviderFile> {
+    override fun listFiles(): List<ProviderFile> {
         throw UnsupportedOperationException()
     }
 

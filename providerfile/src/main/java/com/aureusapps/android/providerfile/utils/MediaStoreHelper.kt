@@ -1,4 +1,4 @@
-package com.aureusapps.android.providerfile
+package com.aureusapps.android.providerfile.utils
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
@@ -6,12 +6,11 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import com.aureusapps.android.providerfile.ProviderContract.queryForLong
-import com.aureusapps.android.providerfile.ProviderContract.queryForString
 import com.aureusapps.android.providerfile.extensions.closeQuietly
-import com.aureusapps.android.providerfile.utils.Logger
+import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForLong
+import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForString
 
-object MediaStoreContract {
+object MediaStoreHelper {
 
     fun getName(context: Context, uri: Uri): String? {
         return queryForString(context, uri, MediaStore.MediaColumns.DISPLAY_NAME)
@@ -44,7 +43,7 @@ object MediaStoreContract {
         }
     }
 
-    fun rename(context: Context, uri: Uri, displayName: String):Boolean {
+    fun rename(context: Context, uri: Uri, displayName: String): Boolean {
         val resolver = context.contentResolver
         val values = ContentValues()
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)

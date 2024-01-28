@@ -99,7 +99,7 @@ internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : 
         return file.exists()
     }
 
-    override fun listFiles(): Array<ProviderFile> {
+    override fun listFiles(): List<ProviderFile> {
         val results = ArrayList<ProviderFile>()
         val files = file.listFiles()
         if (files != null) {
@@ -107,7 +107,7 @@ internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : 
                 results.add(RawDocumentFile(this, file))
             }
         }
-        return results.toTypedArray<ProviderFile>()
+        return results
     }
 
     override fun renameTo(displayName: String): Boolean {
