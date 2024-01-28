@@ -286,7 +286,9 @@ abstract class ProviderFile internal constructor(
     abstract fun renameTo(displayName: String): Boolean
 
     companion object {
-        const val TAG = "DocumentFile"
+        const val TAG = "ProviderFile"
+        private const val PATH_TREE = "tree"
+        private const val PATH_MEDIA = "media"
 
         /**
          * Create a [ProviderFile] representing the filesystem tree rooted at
@@ -311,7 +313,7 @@ abstract class ProviderFile internal constructor(
          * [Intent.ACTION_OPEN_DOCUMENT] or
          * [Intent.ACTION_CREATE_DOCUMENT] request.
          */
-        fun fromSingleUri(context: Context, singleUri: Uri): ProviderFile? {
+        fun fromSingleUri(context: Context, singleUri: Uri): ProviderFile {
             return SingleDocumentFile(null, context, singleUri)
         }
 
@@ -324,29 +326,39 @@ abstract class ProviderFile internal constructor(
          * @param treeUri the [Intent.getData] from a successful
          * [Intent.ACTION_OPEN_DOCUMENT_TREE] request.
          */
-        fun fromTreeUri(context: Context, treeUri: Uri): ProviderFile? {
-            return if (Build.VERSION.SDK_INT >= 21) {
-                var documentId = DocumentsContractCompat.getTreeDocumentId(treeUri)
-                if (DocumentsContractCompat.isDocumentUri(context, treeUri)) {
-                    documentId = DocumentsContractCompat.getDocumentId(treeUri)
-                }
-                requireNotNull(documentId) { "Could not get document ID from Uri: $treeUri" }
-                val treeDocumentUri = DocumentsContractCompat.buildDocumentUriUsingTree(treeUri, documentId)
-                    ?: throw NullPointerException(
-                        "Failed to build documentUri from a tree: $treeUri"
-                    )
-                TreeDocumentFile(null, context, treeDocumentUri)
-            } else {
-                null
+        fun fromTreeUri(context: Context, treeUri: Uri): ProviderFile {
+            var documentId = DocumentsContractCompat.getTreeDocumentId(treeUri)
+            if (DocumentsContractCompat.isDocumentUri(context, treeUri)) {
+                documentId = DocumentsContractCompat.getDocumentId(treeUri)
             }
+            requireNotNull(documentId) { "Could not get document ID from Uri: $treeUri" }
+            val treeDocumentUri = DocumentsContractCompat.buildDocumentUriUsingTree(treeUri, documentId)
+                ?: throw NullPointerException(
+                    "Failed to build documentUri from a tree: $treeUri"
+                )
+            return TreeDocumentFile(null, context, treeDocumentUri)
+        }
+
+        fun fromMediaUri(context: Context, mediaUri: Uri): ProviderFile {
+            return MediaProviderFile(context, mediaUri)
         }
 
         /**
          * Test if given Uri is backed by a
          * [android.provider.DocumentsProvider].
          */
-        fun isDocumentUri(context: Context, uri: Uri?): Boolean {
+        fun isDocumentUri(context: Context, uri: Uri): Boolean {
             return DocumentsContractCompat.isDocumentUri(context, uri)
+        }
+
+        fun isTreeUri(uri: Uri): Boolean {
+            val paths = uri.pathSegments
+            return paths.size > 0 && paths[0] == PATH_TREE
+        }
+
+        fun isMediaUri(uri: Uri): Boolean {
+            val paths = uri.pathSegments
+            return paths.size > 0 && paths[0] == PATH_MEDIA
         }
     }
 }

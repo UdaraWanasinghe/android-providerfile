@@ -13,200 +13,203 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.aureusapps.android.providerfile
 
-package com.aureusapps.android.providerfile;
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.net.Uri
+import android.provider.DocumentsContract
+import android.text.TextUtils
+import android.util.Log
+import androidx.core.provider.DocumentsContractCompat.DocumentCompat
 
-import static androidx.core.provider.DocumentsContractCompat.DocumentCompat.FLAG_VIRTUAL_DOCUMENT;
+internal object DocumentsContractApi19 {
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.DocumentsContract;
-import android.text.TextUtils;
-import android.util.Log;
+    private const val TAG = "DocumentFile"
 
-import androidx.annotation.Nullable;
-
-class DocumentsContractApi19 {
-    private static final String TAG = "DocumentFile";
-
-    public static boolean isVirtual(Context context, Uri self) {
-        if (!DocumentsContract.isDocumentUri(context, self)) {
-            return false;
-        }
-
-        return (getFlags(context, self) & FLAG_VIRTUAL_DOCUMENT) != 0;
+    @JvmStatic
+    fun isVirtual(context: Context, self: Uri?): Boolean {
+        return if (!DocumentsContract.isDocumentUri(context, self)) {
+            false
+        } else getFlags(
+            context,
+            self
+        ) and DocumentCompat.FLAG_VIRTUAL_DOCUMENT.toLong() != 0L
     }
 
-    @Nullable
-    public static String getName(Context context, Uri self) {
-        return queryForString(context, self, DocumentsContract.Document.COLUMN_DISPLAY_NAME, null);
+    @JvmStatic
+    fun getName(context: Context, self: Uri): String? {
+        return queryForString(context, self, DocumentsContract.Document.COLUMN_DISPLAY_NAME, null)
     }
 
-    @Nullable
-    private static String getRawType(Context context, Uri self) {
-        return queryForString(context, self, DocumentsContract.Document.COLUMN_MIME_TYPE, null);
+    private fun getRawType(context: Context, self: Uri): String? {
+        return queryForString(context, self, DocumentsContract.Document.COLUMN_MIME_TYPE, null)
     }
 
-    @Nullable
-    public static String getType(Context context, Uri self) {
-        final String rawType = getRawType(context, self);
-        if (DocumentsContract.Document.MIME_TYPE_DIR.equals(rawType)) {
-            return null;
+    @JvmStatic
+    fun getType(context: Context, self: Uri): String? {
+        val rawType = getRawType(context, self)
+        return if (DocumentsContract.Document.MIME_TYPE_DIR == rawType) {
+            null
         } else {
-            return rawType;
+            rawType
         }
     }
 
-    public static long getFlags(Context context, Uri self) {
-        return queryForLong(context, self, DocumentsContract.Document.COLUMN_FLAGS, 0);
+    fun getFlags(context: Context, self: Uri?): Long {
+        return queryForLong(context, self, DocumentsContract.Document.COLUMN_FLAGS, 0)
     }
 
-    public static boolean isDirectory(Context context, Uri self) {
-        return DocumentsContract.Document.MIME_TYPE_DIR.equals(getRawType(context, self));
+    @JvmStatic
+    fun isDirectory(context: Context, self: Uri): Boolean {
+        return DocumentsContract.Document.MIME_TYPE_DIR == getRawType(context, self)
     }
 
-    public static boolean isFile(Context context, Uri self) {
-        final String type = getRawType(context, self);
-        if (DocumentsContract.Document.MIME_TYPE_DIR.equals(type) || TextUtils.isEmpty(type)) {
-            return false;
+    @JvmStatic
+    fun isFile(context: Context, self: Uri): Boolean {
+        val type = getRawType(context, self)
+        return if (DocumentsContract.Document.MIME_TYPE_DIR == type || TextUtils.isEmpty(type)) {
+            false
         } else {
-            return true;
+            true
         }
     }
 
-    public static long lastModified(Context context, Uri self) {
-        return queryForLong(context, self, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0);
+    @JvmStatic
+    fun lastModified(context: Context, self: Uri?): Long {
+        return queryForLong(context, self, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0)
     }
 
-    public static long length(Context context, Uri self) {
-        return queryForLong(context, self, DocumentsContract.Document.COLUMN_SIZE, 0);
+    @JvmStatic
+    fun length(context: Context, self: Uri?): Long {
+        return queryForLong(context, self, DocumentsContract.Document.COLUMN_SIZE, 0)
     }
 
-    public static boolean canRead(Context context, Uri self) {
+    @JvmStatic
+    fun canRead(context: Context, self: Uri): Boolean {
         // Ignore if grant doesn't allow read
         if (context.checkCallingOrSelfUriPermission(self, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return false;
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
         }
 
         // Ignore documents without MIME
-        if (TextUtils.isEmpty(getRawType(context, self))) {
-            return false;
-        }
-
-        return true;
+        return if (TextUtils.isEmpty(getRawType(context, self))) {
+            false
+        } else true
     }
 
-    public static boolean canWrite(Context context, Uri self) {
+    @JvmStatic
+    fun canWrite(context: Context, self: Uri): Boolean {
         // Ignore if grant doesn't allow write
         if (context.checkCallingOrSelfUriPermission(self, Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return false;
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
         }
-
-        final String type = getRawType(context, self);
-        final int flags = queryForInt(context, self, DocumentsContract.Document.COLUMN_FLAGS, 0);
+        val type = getRawType(context, self)
+        val flags = queryForInt(context, self, DocumentsContract.Document.COLUMN_FLAGS, 0)
 
         // Ignore documents without MIME
         if (TextUtils.isEmpty(type)) {
-            return false;
+            return false
         }
 
         // Deletable documents considered writable
-        if ((flags & DocumentsContract.Document.FLAG_SUPPORTS_DELETE) != 0) {
-            return true;
+        if (flags and DocumentsContract.Document.FLAG_SUPPORTS_DELETE != 0) {
+            return true
         }
-
-        if (DocumentsContract.Document.MIME_TYPE_DIR.equals(type)
-                && (flags & DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE) != 0) {
+        if (DocumentsContract.Document.MIME_TYPE_DIR == type && flags and DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE != 0) {
             // Directories that allow create considered writable
-            return true;
+            return true
         } else if (!TextUtils.isEmpty(type)
-                && (flags & DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0) {
+            && flags and DocumentsContract.Document.FLAG_SUPPORTS_WRITE != 0
+        ) {
             // Writable normal files considered writable
-            return true;
+            return true
         }
-
-        return false;
+        return false
     }
 
-    public static boolean exists(Context context, Uri self) {
-        final ContentResolver resolver = context.getContentResolver();
-
-        Cursor c = null;
-        try {
-            c = resolver.query(self, new String[]{
-                    DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
-            return c.getCount() > 0;
-        } catch (Exception e) {
-            Log.w(TAG, "Failed query: " + e);
-            return false;
+    @JvmStatic
+    fun exists(context: Context, self: Uri?): Boolean {
+        val resolver = context.contentResolver
+        var c: Cursor? = null
+        return try {
+            c = resolver.query(
+                self!!, arrayOf(
+                    DocumentsContract.Document.COLUMN_DOCUMENT_ID
+                ), null, null, null
+            )
+            c!!.count > 0
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed query: $e")
+            false
         } finally {
-            closeQuietly(c);
+            closeQuietly(c)
         }
     }
 
-    @Nullable
-    private static String queryForString(Context context, Uri self, String column,
-            @Nullable String defaultValue) {
-        final ContentResolver resolver = context.getContentResolver();
-
-        Cursor c = null;
-        try {
-            c = resolver.query(self, new String[]{column}, null, null, null);
-            if (c.moveToFirst() && !c.isNull(0)) {
-                return c.getString(0);
+    private fun queryForString(
+        context: Context, self: Uri, column: String,
+        defaultValue: String?
+    ): String? {
+        val resolver = context.contentResolver
+        var c: Cursor? = null
+        return try {
+            c = resolver.query(self, arrayOf(column), null, null, null)
+            if (c!!.moveToFirst() && !c.isNull(0)) {
+                c.getString(0)
             } else {
-                return defaultValue;
+                defaultValue
             }
-        } catch (Exception e) {
-            Log.w(TAG, "Failed query: " + e);
-            return defaultValue;
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed query: $e")
+            defaultValue
         } finally {
-            closeQuietly(c);
+            closeQuietly(c)
         }
     }
 
-    private static int queryForInt(Context context, Uri self, String column,
-            int defaultValue) {
-        return (int) queryForLong(context, self, column, defaultValue);
+    private fun queryForInt(
+        context: Context, self: Uri, column: String,
+        defaultValue: Int
+    ): Int {
+        return queryForLong(context, self, column, defaultValue.toLong()).toInt()
     }
 
-    private static long queryForLong(Context context, Uri self, String column,
-            long defaultValue) {
-        final ContentResolver resolver = context.getContentResolver();
-
-        Cursor c = null;
-        try {
-            c = resolver.query(self, new String[]{column}, null, null, null);
-            if (c.moveToFirst() && !c.isNull(0)) {
-                return c.getLong(0);
+    private fun queryForLong(
+        context: Context, self: Uri?, column: String,
+        defaultValue: Long
+    ): Long {
+        val resolver = context.contentResolver
+        var c: Cursor? = null
+        return try {
+            c = resolver.query(self!!, arrayOf(column), null, null, null)
+            if (c!!.moveToFirst() && !c.isNull(0)) {
+                c.getLong(0)
             } else {
-                return defaultValue;
+                defaultValue
             }
-        } catch (Exception e) {
-            Log.w(TAG, "Failed query: " + e);
-            return defaultValue;
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed query: $e")
+            defaultValue
         } finally {
-            closeQuietly(c);
+            closeQuietly(c)
         }
     }
 
-    private static void closeQuietly(@Nullable AutoCloseable closeable) {
+    private fun closeQuietly(closeable: AutoCloseable?) {
         if (closeable != null) {
             try {
-                closeable.close();
-            } catch (RuntimeException rethrown) {
-                throw rethrown;
-            } catch (Exception ignored) {
+                closeable.close()
+            } catch (rethrown: RuntimeException) {
+                throw rethrown
+            } catch (ignored: Exception) {
             }
         }
-    }
-
-    private DocumentsContractApi19() {
     }
 }

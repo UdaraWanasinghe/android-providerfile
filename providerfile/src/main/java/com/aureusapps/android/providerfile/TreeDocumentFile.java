@@ -29,20 +29,20 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 class TreeDocumentFile extends ProviderFile {
-    private Context mContext;
-    private Uri mUri;
+    private Context context;
+    private Uri uri;
 
     TreeDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
         super(parent);
-        mContext = context;
-        mUri = uri;
+        this.context = context;
+        this.uri = uri;
     }
 
     @Override
     @Nullable
     public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
-        final Uri result = TreeDocumentFile.createFile(mContext, mUri, mimeType, displayName);
-        return (result != null) ? new TreeDocumentFile(this, mContext, result) : null;
+        final Uri result = TreeDocumentFile.createFile(context, uri, mimeType, displayName);
+        return (result != null) ? new TreeDocumentFile(this, context, result) : null;
     }
 
     @Nullable
@@ -60,67 +60,67 @@ class TreeDocumentFile extends ProviderFile {
     @Nullable
     public ProviderFile createDirectory(@NonNull String displayName) {
         final Uri result = TreeDocumentFile.createFile(
-                mContext, mUri, DocumentsContract.Document.MIME_TYPE_DIR, displayName);
-        return (result != null) ? new TreeDocumentFile(this, mContext, result) : null;
+                context, uri, DocumentsContract.Document.MIME_TYPE_DIR, displayName);
+        return (result != null) ? new TreeDocumentFile(this, context, result) : null;
     }
 
     @NonNull
     @Override
     public Uri getUri() {
-        return mUri;
+        return uri;
     }
 
     @Override
     @Nullable
     public String getName() {
-        return DocumentsContractApi19.getName(mContext, mUri);
+        return DocumentsContractApi19.getName(context, uri);
     }
 
     @Override
     @Nullable
     public String getType() {
-        return DocumentsContractApi19.getType(mContext, mUri);
+        return DocumentsContractApi19.getType(context, uri);
     }
 
     @Override
     public boolean isDirectory() {
-        return DocumentsContractApi19.isDirectory(mContext, mUri);
+        return DocumentsContractApi19.isDirectory(context, uri);
     }
 
     @Override
     public boolean isFile() {
-        return DocumentsContractApi19.isFile(mContext, mUri);
+        return DocumentsContractApi19.isFile(context, uri);
     }
 
     @Override
     public boolean isVirtual() {
-        return DocumentsContractApi19.isVirtual(mContext, mUri);
+        return DocumentsContractApi19.isVirtual(context, uri);
     }
 
     @Override
     public long lastModified() {
-        return DocumentsContractApi19.lastModified(mContext, mUri);
+        return DocumentsContractApi19.lastModified(context, uri);
     }
 
     @Override
     public long length() {
-        return DocumentsContractApi19.length(mContext, mUri);
+        return DocumentsContractApi19.length(context, uri);
     }
 
     @Override
     public boolean canRead() {
-        return DocumentsContractApi19.canRead(mContext, mUri);
+        return DocumentsContractApi19.canRead(context, uri);
     }
 
     @Override
     public boolean canWrite() {
-        return DocumentsContractApi19.canWrite(mContext, mUri);
+        return DocumentsContractApi19.canWrite(context, uri);
     }
 
     @Override
     public boolean delete() {
         try {
-            return DocumentsContract.deleteDocument(mContext.getContentResolver(), mUri);
+            return DocumentsContract.deleteDocument(context.getContentResolver(), uri);
         } catch (Exception e) {
             return false;
         }
@@ -128,15 +128,15 @@ class TreeDocumentFile extends ProviderFile {
 
     @Override
     public boolean exists() {
-        return DocumentsContractApi19.exists(mContext, mUri);
+        return DocumentsContractApi19.exists(context, uri);
     }
 
     @NonNull
     @Override
     public ProviderFile[] listFiles() {
-        final ContentResolver resolver = mContext.getContentResolver();
-        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(mUri,
-                DocumentsContract.getDocumentId(mUri));
+        final ContentResolver resolver = context.getContentResolver();
+        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri,
+                DocumentsContract.getDocumentId(uri));
         final ArrayList<Uri> results = new ArrayList<>();
 
         Cursor c = null;
@@ -145,7 +145,7 @@ class TreeDocumentFile extends ProviderFile {
                     DocumentsContract.Document.COLUMN_DOCUMENT_ID }, null, null, null);
             while (c.moveToNext()) {
                 final String documentId = c.getString(0);
-                final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(mUri,
+                final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(uri,
                         documentId);
                 results.add(documentUri);
             }
@@ -158,7 +158,7 @@ class TreeDocumentFile extends ProviderFile {
         final Uri[] result = results.toArray(new Uri[0]);
         final ProviderFile[] resultFiles = new ProviderFile[result.length];
         for (int i = 0; i < result.length; i++) {
-            resultFiles[i] = new TreeDocumentFile(this, mContext, result[i]);
+            resultFiles[i] = new TreeDocumentFile(this, context, result[i]);
         }
         return resultFiles;
     }
@@ -178,9 +178,9 @@ class TreeDocumentFile extends ProviderFile {
     public boolean renameTo(@NonNull String displayName) {
         try {
             final Uri result = DocumentsContract.renameDocument(
-                    mContext.getContentResolver(), mUri, displayName);
+                    context.getContentResolver(), uri, displayName);
             if (result != null) {
-                mUri = result;
+                uri = result;
                 return true;
             } else {
                 return false;

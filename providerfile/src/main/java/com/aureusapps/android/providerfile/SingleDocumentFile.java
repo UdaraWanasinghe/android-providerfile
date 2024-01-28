@@ -24,13 +24,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 class SingleDocumentFile extends ProviderFile {
-    private Context mContext;
-    private Uri mUri;
+    private Context context;
+    private Uri uri;
 
     SingleDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
         super(parent);
-        mContext = context;
-        mUri = uri;
+        this.context = context;
+        this.uri = uri;
     }
 
     @Override
@@ -46,60 +46,60 @@ class SingleDocumentFile extends ProviderFile {
     @NonNull
     @Override
     public Uri getUri() {
-        return mUri;
+        return uri;
     }
 
     @Override
     @Nullable
     public String getName() {
-        return DocumentsContractApi19.getName(mContext, mUri);
+        return DocumentsContractApi19.getName(context, uri);
     }
 
     @Override
     @Nullable
     public String getType() {
-        return DocumentsContractApi19.getType(mContext, mUri);
+        return DocumentsContractApi19.getType(context, uri);
     }
 
     @Override
     public boolean isDirectory() {
-        return DocumentsContractApi19.isDirectory(mContext, mUri);
+        return DocumentsContractApi19.isDirectory(context, uri);
     }
 
     @Override
     public boolean isFile() {
-        return DocumentsContractApi19.isFile(mContext, mUri);
+        return DocumentsContractApi19.isFile(context, uri);
     }
 
     @Override
     public boolean isVirtual() {
-        return DocumentsContractApi19.isVirtual(mContext, mUri);
+        return DocumentsContractApi19.isVirtual(context, uri);
     }
 
     @Override
     public long lastModified() {
-        return DocumentsContractApi19.lastModified(mContext, mUri);
+        return DocumentsContractApi19.lastModified(context, uri);
     }
 
     @Override
     public long length() {
-        return DocumentsContractApi19.length(mContext, mUri);
+        return DocumentsContractApi19.length(context, uri);
     }
 
     @Override
     public boolean canRead() {
-        return DocumentsContractApi19.canRead(mContext, mUri);
+        return DocumentsContractApi19.canRead(context, uri);
     }
 
     @Override
     public boolean canWrite() {
-        return DocumentsContractApi19.canWrite(mContext, mUri);
+        return DocumentsContractApi19.canWrite(context, uri);
     }
 
     @Override
     public boolean delete() {
         try {
-            return DocumentsContract.deleteDocument(mContext.getContentResolver(), mUri);
+            return DocumentsContract.deleteDocument(context.getContentResolver(), uri);
         } catch (Exception e) {
             return false;
         }
@@ -107,7 +107,7 @@ class SingleDocumentFile extends ProviderFile {
 
     @Override
     public boolean exists() {
-        return DocumentsContractApi19.exists(mContext, mUri);
+        return DocumentsContractApi19.exists(context, uri);
     }
 
     @NonNull
