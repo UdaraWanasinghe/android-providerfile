@@ -15,9 +15,11 @@
  */
 package com.aureusapps.android.providerfile
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import androidx.core.net.toFile
 import androidx.core.provider.DocumentsContractCompat
 import java.io.File
 
@@ -303,6 +305,10 @@ abstract class ProviderFile internal constructor(
             return RawDocumentFile(null, file)
         }
 
+        fun fromFileUri(uri: Uri): ProviderFile {
+            return RawDocumentFile(null, uri.toFile())
+        }
+
         /**
          * Create a [ProviderFile] representing the single document at the
          * given [Uri]. This is only useful on devices running
@@ -359,6 +365,24 @@ abstract class ProviderFile internal constructor(
         fun isMediaUri(uri: Uri): Boolean {
             val paths = uri.pathSegments
             return paths.size > 0 && paths[0] == PATH_MEDIA
+        }
+
+        fun isFileUri(uri: Uri): Boolean {
+            return uri.scheme == ContentResolver.SCHEME_FILE
+        }
+
+        fun fromUri(context: Context, uri: Uri): ProviderFile? {
+            return when (uri.scheme) {
+                ContentResolver.SCHEME_FILE -> fromFileUri(uri)
+                ContentResolver.SCHEME_CONTENT -> when {
+                    isTreeUri(uri) -> fromTreeUri(context, uri)
+                    isDocumentUri(context, uri) -> fromSingleUri(context, uri)
+                    isMediaUri(uri) -> fromMediaUri(context, uri)
+                    else -> null
+                }
+
+                else -> null
+            }
         }
     }
 }

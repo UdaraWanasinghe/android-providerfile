@@ -13,180 +13,155 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.aureusapps.android.providerfile
 
-package com.aureusapps.android.providerfile;
+import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.DocumentsContract
+import android.util.Log
+import com.aureusapps.android.providerfile.DocumentsContractApi19.canRead
+import com.aureusapps.android.providerfile.DocumentsContractApi19.canWrite
+import com.aureusapps.android.providerfile.DocumentsContractApi19.exists
+import com.aureusapps.android.providerfile.DocumentsContractApi19.getName
+import com.aureusapps.android.providerfile.DocumentsContractApi19.getType
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isDirectory
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isFile
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isVirtual
+import com.aureusapps.android.providerfile.DocumentsContractApi19.lastModified
+import com.aureusapps.android.providerfile.DocumentsContractApi19.length
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.DocumentsContract;
-import android.util.Log;
+internal class TreeDocumentFile(
+    parent: ProviderFile?,
+    private val context: Context,
+    override var uri: Uri
+) : ProviderFile(parent) {
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.util.ArrayList;
-
-class TreeDocumentFile extends ProviderFile {
-    private Context context;
-    private Uri uri;
-
-    TreeDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
-        super(parent);
-        this.context = context;
-        this.uri = uri;
+    override fun createFile(mimeType: String, displayName: String): ProviderFile? {
+        val result = createFile(context, uri, mimeType, displayName)
+        return if (result != null) TreeDocumentFile(this, context, result) else null
     }
 
-    @Override
-    @Nullable
-    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
-        final Uri result = TreeDocumentFile.createFile(context, uri, mimeType, displayName);
-        return (result != null) ? new TreeDocumentFile(this, context, result) : null;
+    override fun createDirectory(displayName: String): ProviderFile? {
+        val result = createFile(
+            context, uri, DocumentsContract.Document.MIME_TYPE_DIR, displayName
+        )
+        return if (result != null) TreeDocumentFile(this, context, result) else null
     }
 
-    @Nullable
-    private static Uri createFile(Context context, Uri self, String mimeType,
-            String displayName) {
-        try {
-            return DocumentsContract.createDocument(context.getContentResolver(), self, mimeType,
-                    displayName);
-        } catch (Exception e) {
-            return null;
+    override val name: String?
+        get() = getName(context, uri)
+
+    override val type: String?
+        get() = getType(context, uri)
+
+    override val isDirectory: Boolean
+        get() = isDirectory(context, uri)
+
+    override val isFile: Boolean
+        get() = isFile(context, uri)
+
+    override val isVirtual: Boolean
+        get() = isVirtual(context, uri)
+
+    override fun lastModified(): Long {
+        return lastModified(context, uri)
+    }
+
+    override fun length(): Long {
+        return length(context, uri)
+    }
+
+    override fun canRead(): Boolean {
+        return canRead(context, uri)
+    }
+
+    override fun canWrite(): Boolean {
+        return canWrite(context, uri)
+    }
+
+    override fun delete(): Boolean {
+        return try {
+            DocumentsContract.deleteDocument(context.contentResolver, uri)
+        } catch (e: Exception) {
+            false
         }
     }
 
-    @Override
-    @Nullable
-    public ProviderFile createDirectory(@NonNull String displayName) {
-        final Uri result = TreeDocumentFile.createFile(
-                context, uri, DocumentsContract.Document.MIME_TYPE_DIR, displayName);
-        return (result != null) ? new TreeDocumentFile(this, context, result) : null;
+    override fun exists(): Boolean {
+        return exists(context, uri)
     }
 
-    @NonNull
-    @Override
-    public Uri getUri() {
-        return uri;
-    }
-
-    @Override
-    @Nullable
-    public String getName() {
-        return DocumentsContractApi19.getName(context, uri);
-    }
-
-    @Override
-    @Nullable
-    public String getType() {
-        return DocumentsContractApi19.getType(context, uri);
-    }
-
-    @Override
-    public boolean isDirectory() {
-        return DocumentsContractApi19.isDirectory(context, uri);
-    }
-
-    @Override
-    public boolean isFile() {
-        return DocumentsContractApi19.isFile(context, uri);
-    }
-
-    @Override
-    public boolean isVirtual() {
-        return DocumentsContractApi19.isVirtual(context, uri);
-    }
-
-    @Override
-    public long lastModified() {
-        return DocumentsContractApi19.lastModified(context, uri);
-    }
-
-    @Override
-    public long length() {
-        return DocumentsContractApi19.length(context, uri);
-    }
-
-    @Override
-    public boolean canRead() {
-        return DocumentsContractApi19.canRead(context, uri);
-    }
-
-    @Override
-    public boolean canWrite() {
-        return DocumentsContractApi19.canWrite(context, uri);
-    }
-
-    @Override
-    public boolean delete() {
+    override fun listFiles(): Array<ProviderFile> {
+        val resolver = context.contentResolver
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+            uri,
+            DocumentsContract.getDocumentId(uri)
+        )
+        val results = ArrayList<Uri>()
+        var c: Cursor? = null
         try {
-            return DocumentsContract.deleteDocument(context.getContentResolver(), uri);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean exists() {
-        return DocumentsContractApi19.exists(context, uri);
-    }
-
-    @NonNull
-    @Override
-    public ProviderFile[] listFiles() {
-        final ContentResolver resolver = context.getContentResolver();
-        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri,
-                DocumentsContract.getDocumentId(uri));
-        final ArrayList<Uri> results = new ArrayList<>();
-
-        Cursor c = null;
-        try {
-            c = resolver.query(childrenUri, new String[] {
-                    DocumentsContract.Document.COLUMN_DOCUMENT_ID }, null, null, null);
-            while (c.moveToNext()) {
-                final String documentId = c.getString(0);
-                final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(uri,
-                        documentId);
-                results.add(documentUri);
+            c = resolver.query(
+                childrenUri, arrayOf(
+                    DocumentsContract.Document.COLUMN_DOCUMENT_ID
+                ), null, null, null
+            )
+            while (c!!.moveToNext()) {
+                val documentId = c.getString(0)
+                val documentUri = DocumentsContract.buildDocumentUriUsingTree(
+                    uri,
+                    documentId
+                )
+                results.add(documentUri)
             }
-        } catch (Exception e) {
-            Log.w(TAG, "Failed query: " + e);
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed query: $e")
         } finally {
-            closeQuietly(c);
+            closeQuietly(c)
         }
-
-        final Uri[] result = results.toArray(new Uri[0]);
-        final ProviderFile[] resultFiles = new ProviderFile[result.length];
-        for (int i = 0; i < result.length; i++) {
-            resultFiles[i] = new TreeDocumentFile(this, context, result[i]);
-        }
-        return resultFiles;
+        return results.map { TreeDocumentFile(this, context, it) }.toTypedArray()
     }
 
-    private static void closeQuietly(@Nullable AutoCloseable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (RuntimeException rethrown) {
-                throw rethrown;
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    @Override
-    public boolean renameTo(@NonNull String displayName) {
-        try {
-            final Uri result = DocumentsContract.renameDocument(
-                    context.getContentResolver(), uri, displayName);
+    override fun renameTo(displayName: String): Boolean {
+        return try {
+            val result = DocumentsContract.renameDocument(
+                context.contentResolver, uri, displayName
+            )
             if (result != null) {
-                uri = result;
-                return true;
+                uri = result
+                true
             } else {
-                return false;
+                false
             }
-        } catch (Exception e) {
-            return false;
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    companion object {
+        private fun createFile(
+            context: Context, self: Uri, mimeType: String,
+            displayName: String
+        ): Uri? {
+            return try {
+                DocumentsContract.createDocument(
+                    context.contentResolver, self, mimeType,
+                    displayName
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        private fun closeQuietly(closeable: AutoCloseable?) {
+            if (closeable != null) {
+                try {
+                    closeable.close()
+                } catch (rethrown: RuntimeException) {
+                    throw rethrown
+                } catch (ignored: Exception) {
+                }
+            }
         }
     }
 }

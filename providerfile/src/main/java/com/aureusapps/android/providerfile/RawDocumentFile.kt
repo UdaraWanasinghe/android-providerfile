@@ -13,178 +13,144 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.aureusapps.android.providerfile
 
-package com.aureusapps.android.providerfile;
+import android.net.Uri
+import android.util.Log
+import android.webkit.MimeTypeMap
+import java.io.File
+import java.io.IOException
+import java.util.Locale
 
-import android.net.Uri;
-import android.util.Log;
-import android.webkit.MimeTypeMap;
+internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : ProviderFile(parent) {
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
-class RawDocumentFile extends ProviderFile {
-    private File mFile;
-
-    RawDocumentFile(@Nullable ProviderFile parent, File file) {
-        super(parent);
-        mFile = file;
-    }
-
-    @Override
-    @Nullable
-    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
+    override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         // Tack on extension when valid MIME type provided
-        final String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+        var name = displayName
+        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
         if (extension != null) {
-            displayName += "." + extension;
+            name += ".$extension"
         }
-        final File target = new File(mFile, displayName);
-        try {
+        val target = File(file, name)
+        return try {
             if (target.createNewFile()) {
-                return new RawDocumentFile(this, target);
+                RawDocumentFile(this, target)
             } else {
-                return null;
+                null
             }
-        } catch (IOException e) {
-            Log.w(TAG, "Failed to createFile: " + e);
-            return null;
+        } catch (e: IOException) {
+            Log.w(TAG, "Failed to createFile: $e")
+            null
         }
     }
 
-    @Override
-    @Nullable
-    public ProviderFile createDirectory(@NonNull String displayName) {
-        final File target = new File(mFile, displayName);
-        if (target.isDirectory() || target.mkdir()) {
-            return new RawDocumentFile(this, target);
+    override fun createDirectory(displayName: String): ProviderFile? {
+        val target = File(file, displayName)
+        return if (target.isDirectory || target.mkdir()) {
+            RawDocumentFile(this, target)
         } else {
-            return null;
+            null
         }
     }
 
-    @NonNull
-    @Override
-    public Uri getUri() {
-        return Uri.fromFile(mFile);
-    }
+    override val uri: Uri
+        get() = Uri.fromFile(file)
 
-    @Override
-    public String getName() {
-        return mFile.getName();
-    }
+    override val name: String
+        get() = file.name
 
-    @Override
-    @Nullable
-    public String getType() {
-        if (mFile.isDirectory()) {
-            return null;
+    override val type: String?
+        get() = if (file.isDirectory) {
+            null
         } else {
-            return getTypeForName(mFile.getName());
+            getTypeForName(file.name)
         }
+    override val isDirectory: Boolean
+        get() = file.isDirectory
+
+    override val isFile: Boolean
+        get() = file.isFile
+
+    override val isVirtual: Boolean
+        get() = false
+
+    override fun lastModified(): Long {
+        return file.lastModified()
     }
 
-    @Override
-    public boolean isDirectory() {
-        return mFile.isDirectory();
+    override fun length(): Long {
+        return file.length()
     }
 
-    @Override
-    public boolean isFile() {
-        return mFile.isFile();
+    override fun canRead(): Boolean {
+        return file.canRead()
     }
 
-    @Override
-    public boolean isVirtual() {
-        return false;
+    override fun canWrite(): Boolean {
+        return file.canWrite()
     }
 
-    @Override
-    public long lastModified() {
-        return mFile.lastModified();
+    override fun delete(): Boolean {
+        deleteContents(file)
+        return file.delete()
     }
 
-    @Override
-    public long length() {
-        return mFile.length();
+    override fun exists(): Boolean {
+        return file.exists()
     }
 
-    @Override
-    public boolean canRead() {
-        return mFile.canRead();
-    }
-
-    @Override
-    public boolean canWrite() {
-        return mFile.canWrite();
-    }
-
-    @Override
-    public boolean delete() {
-        deleteContents(mFile);
-        return mFile.delete();
-    }
-
-    @Override
-    public boolean exists() {
-        return mFile.exists();
-    }
-
-    @NonNull
-    @Override
-    public ProviderFile[] listFiles() {
-        final ArrayList<ProviderFile> results = new ArrayList<>();
-        final File[] files = mFile.listFiles();
+    override fun listFiles(): Array<ProviderFile> {
+        val results = ArrayList<ProviderFile>()
+        val files = file.listFiles()
         if (files != null) {
-            for (File file : files) {
-                results.add(new RawDocumentFile(this, file));
+            for (file in files) {
+                results.add(RawDocumentFile(this, file))
             }
         }
-        return results.toArray(new ProviderFile[0]);
+        return results.toTypedArray<ProviderFile>()
     }
 
-    @Override
-    public boolean renameTo(@NonNull String displayName) {
-        final File target = new File(mFile.getParentFile(), displayName);
-        if (mFile.renameTo(target)) {
-            mFile = target;
-            return true;
+    override fun renameTo(displayName: String): Boolean {
+        val target = File(file.parentFile, displayName)
+        return if (file.renameTo(target)) {
+            file = target
+            true
         } else {
-            return false;
+            false
         }
     }
 
-    private static String getTypeForName(String name) {
-        final int lastDot = name.lastIndexOf('.');
-        if (lastDot >= 0) {
-            final String extension = name.substring(lastDot + 1).toLowerCase();
-            final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-            if (mime != null) {
-                return mime;
-            }
-        }
+    companion object {
 
-        return "application/octet-stream";
-    }
-
-    private static boolean deleteContents(File dir) {
-        File[] files = dir.listFiles();
-        boolean success = true;
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    success &= deleteContents(file);
-                }
-                if (!file.delete()) {
-                    Log.w(TAG, "Failed to delete " + file);
-                    success = false;
+        private fun getTypeForName(name: String): String {
+            val lastDot = name.lastIndexOf('.')
+            if (lastDot >= 0) {
+                val extension = name.substring(lastDot + 1).lowercase(Locale.getDefault())
+                val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                if (mime != null) {
+                    return mime
                 }
             }
+            return "application/octet-stream"
         }
-        return success;
+
+        private fun deleteContents(dir: File): Boolean {
+            val files = dir.listFiles()
+            var success = true
+            if (files != null) {
+                for (file in files) {
+                    if (file.isDirectory) {
+                        success = success and deleteContents(file)
+                    }
+                    if (!file.delete()) {
+                        Log.w(TAG, "Failed to delete $file")
+                        success = false
+                    }
+                }
+            }
+            return success
+        }
+
     }
+
 }

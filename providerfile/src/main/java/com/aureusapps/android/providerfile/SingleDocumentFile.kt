@@ -13,111 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.aureusapps.android.providerfile
 
-package com.aureusapps.android.providerfile;
+import android.content.Context
+import android.net.Uri
+import android.provider.DocumentsContract
+import com.aureusapps.android.providerfile.DocumentsContractApi19.canRead
+import com.aureusapps.android.providerfile.DocumentsContractApi19.canWrite
+import com.aureusapps.android.providerfile.DocumentsContractApi19.exists
+import com.aureusapps.android.providerfile.DocumentsContractApi19.getName
+import com.aureusapps.android.providerfile.DocumentsContractApi19.getType
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isDirectory
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isFile
+import com.aureusapps.android.providerfile.DocumentsContractApi19.isVirtual
+import com.aureusapps.android.providerfile.DocumentsContractApi19.lastModified
+import com.aureusapps.android.providerfile.DocumentsContractApi19.length
 
-import android.content.Context;
-import android.net.Uri;
-import android.provider.DocumentsContract;
+internal class SingleDocumentFile(
+    parent: ProviderFile?,
+    private val context: Context,
+    override val uri: Uri
+) : ProviderFile(parent) {
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-class SingleDocumentFile extends ProviderFile {
-    private Context context;
-    private Uri uri;
-
-    SingleDocumentFile(@Nullable ProviderFile parent, Context context, Uri uri) {
-        super(parent);
-        this.context = context;
-        this.uri = uri;
+    override fun createFile(mimeType: String, displayName: String): ProviderFile? {
+        throw UnsupportedOperationException()
     }
 
-    @Override
-    public ProviderFile createFile(@NonNull String mimeType, @NonNull String displayName) {
-        throw new UnsupportedOperationException();
+    override fun createDirectory(displayName: String): ProviderFile? {
+        throw UnsupportedOperationException()
     }
 
-    @Override
-    public ProviderFile createDirectory(@NonNull String displayName) {
-        throw new UnsupportedOperationException();
+    override val name: String?
+        get() = getName(context, uri)
+
+    override val type: String?
+        get() = getType(context, uri)
+
+    override val isDirectory: Boolean
+        get() = isDirectory(context, uri)
+
+    override val isFile: Boolean
+        get() = isFile(context, uri)
+
+    override val isVirtual: Boolean
+        get() = isVirtual(context, uri)
+
+    override fun lastModified(): Long {
+        return lastModified(context, uri)
     }
 
-    @NonNull
-    @Override
-    public Uri getUri() {
-        return uri;
+    override fun length(): Long {
+        return length(context, uri)
     }
 
-    @Override
-    @Nullable
-    public String getName() {
-        return DocumentsContractApi19.getName(context, uri);
+    override fun canRead(): Boolean {
+        return canRead(context, uri)
     }
 
-    @Override
-    @Nullable
-    public String getType() {
-        return DocumentsContractApi19.getType(context, uri);
+    override fun canWrite(): Boolean {
+        return canWrite(context, uri)
     }
 
-    @Override
-    public boolean isDirectory() {
-        return DocumentsContractApi19.isDirectory(context, uri);
-    }
-
-    @Override
-    public boolean isFile() {
-        return DocumentsContractApi19.isFile(context, uri);
-    }
-
-    @Override
-    public boolean isVirtual() {
-        return DocumentsContractApi19.isVirtual(context, uri);
-    }
-
-    @Override
-    public long lastModified() {
-        return DocumentsContractApi19.lastModified(context, uri);
-    }
-
-    @Override
-    public long length() {
-        return DocumentsContractApi19.length(context, uri);
-    }
-
-    @Override
-    public boolean canRead() {
-        return DocumentsContractApi19.canRead(context, uri);
-    }
-
-    @Override
-    public boolean canWrite() {
-        return DocumentsContractApi19.canWrite(context, uri);
-    }
-
-    @Override
-    public boolean delete() {
-        try {
-            return DocumentsContract.deleteDocument(context.getContentResolver(), uri);
-        } catch (Exception e) {
-            return false;
+    override fun delete(): Boolean {
+        return try {
+            DocumentsContract.deleteDocument(context.contentResolver, uri)
+        } catch (e: Exception) {
+            false
         }
     }
 
-    @Override
-    public boolean exists() {
-        return DocumentsContractApi19.exists(context, uri);
+    override fun exists(): Boolean {
+        return exists(context, uri)
     }
 
-    @NonNull
-    @Override
-    public ProviderFile[] listFiles() {
-        throw new UnsupportedOperationException();
+    override fun listFiles(): Array<ProviderFile> {
+        throw UnsupportedOperationException()
     }
 
-    @Override
-    public boolean renameTo(@NonNull String displayName) {
-        throw new UnsupportedOperationException();
+    override fun renameTo(displayName: String): Boolean {
+        throw UnsupportedOperationException()
     }
+
 }
