@@ -44,6 +44,22 @@ android {
     }
 }
 
+publishLibrary {
+    groupId.set(props.groupId)
+    artifactId.set("providerfile")
+    versionName.set("1.0.0")
+    libName.set("ProviderFile")
+    libDescription.set("Representation of files backed by different content providers in android.")
+    libUrl.set("https://github.com/UdaraWanasinghe/android-providerfile")
+    licenseName.set("MIT License")
+    licenseUrl.set("https://github.com/UdaraWanasinghe/android-providerfile/blob/main/LICENSE")
+    devId.set("UdaraWanasinghe")
+    devName.set("Udara Wanasinghe")
+    devEmail.set("udara.developer@gmail.com")
+    scmConnection.set("scm:git:https://github.com/UdaraWanasinghe/android-providerfile.git")
+    scmDevConnection.set("scm:git:ssh://git@github.com/UdaraWanasinghe/android-providerfile.git")
+}
+
 dependencies {
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
