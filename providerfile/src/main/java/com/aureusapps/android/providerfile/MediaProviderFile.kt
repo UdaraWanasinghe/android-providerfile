@@ -47,7 +47,7 @@ class MediaProviderFile(
     }
 
     override fun delete(): Boolean {
-        return ProviderHelper.delete(context, uri)
+        throw UnsupportedOperationException()
     }
 
     override fun exists(): Boolean {
@@ -59,7 +59,7 @@ class MediaProviderFile(
     }
 
     override fun renameTo(displayName: String): Boolean {
-        return MediaStoreHelper.rename(context, uri, displayName)
+        throw UnsupportedOperationException()
     }
 
 }

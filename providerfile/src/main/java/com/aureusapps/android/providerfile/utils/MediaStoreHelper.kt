@@ -1,7 +1,6 @@
 package com.aureusapps.android.providerfile.utils
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
@@ -10,7 +9,7 @@ import com.aureusapps.android.providerfile.extensions.closeQuietly
 import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForLong
 import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForString
 
-object MediaStoreHelper {
+internal object MediaStoreHelper {
 
     fun getName(context: Context, uri: Uri): String? {
         return queryForString(context, uri, MediaStore.MediaColumns.DISPLAY_NAME)
@@ -40,18 +39,6 @@ object MediaStoreHelper {
             false
         } finally {
             cursor?.closeQuietly()
-        }
-    }
-
-    fun rename(context: Context, uri: Uri, displayName: String): Boolean {
-        val resolver = context.contentResolver
-        val values = ContentValues()
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
-        return try {
-            resolver.update(uri, values, null, null) > 0
-        } catch (e: Exception) {
-            Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
-            false
         }
     }
 

@@ -8,7 +8,7 @@ import android.database.Cursor
 import android.net.Uri
 import com.aureusapps.android.providerfile.extensions.closeQuietly
 
-object ProviderHelper {
+internal object ProviderHelper {
 
     @SuppressLint("Recycle")
     fun queryForString(
@@ -64,15 +64,6 @@ object ProviderHelper {
 
     fun canWrite(context: Context, uri: Uri): Boolean {
         return context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun delete(context: Context, uri: Uri): Boolean {
-        return try {
-            context.contentResolver.delete(uri, null, null) > 0
-        } catch (e: Exception) {
-            Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
-            false
-        }
     }
 
 }
