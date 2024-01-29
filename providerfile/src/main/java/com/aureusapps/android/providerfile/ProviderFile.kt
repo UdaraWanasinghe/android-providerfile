@@ -289,7 +289,7 @@ abstract class ProviderFile internal constructor(
     companion object {
         const val TAG = "ProviderFile"
         private const val PATH_TREE = "tree"
-        private const val PATH_MEDIA = "media"
+        private const val AUTHORITY_MEDIA = "media"
 
         /**
          * Create a [ProviderFile] representing the filesystem tree rooted at
@@ -371,8 +371,7 @@ abstract class ProviderFile internal constructor(
         }
 
         fun isMediaUri(uri: Uri): Boolean {
-            val paths = uri.pathSegments
-            return paths.size > 0 && paths[0] == PATH_MEDIA
+            return uri.authority == AUTHORITY_MEDIA
         }
 
         fun isFileUri(uri: Uri): Boolean {
