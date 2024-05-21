@@ -1,6 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.aureusapps.gradle.PublishLibraryConstants.GROUP_ID
+import com.aureusapps.gradle.PublishLibraryConstants.VERSION_NAME
 
 plugins {
     id("com.android.library")
@@ -10,7 +11,8 @@ plugins {
 }
 
 class Props(project: Project) {
-    val groupId = project.findProperty(GROUP_ID).toString()
+    val groupId = project.findProperty(GROUP_ID) as String
+    val versionName = project.findProperty(VERSION_NAME) as String
 }
 
 val props = Props(project)
@@ -45,7 +47,6 @@ android {
     publishing {
         singleVariant("release") {
             withSourcesJar()
-//            withJavadocJar()
         }
     }
 }
@@ -53,7 +54,7 @@ android {
 publishLibrary {
     groupId.set(props.groupId)
     artifactId.set("providerfile")
-    versionName.set("1.0.0")
+    versionName.set(props.versionName)
     libName.set("ProviderFile")
     libDescription.set("Representation of files backed by different content providers in android.")
     libUrl.set("https://github.com/UdaraWanasinghe/android-providerfile")
@@ -67,11 +68,11 @@ publishLibrary {
 }
 
 dependencies {
-    implementation(libs.core.ktx)
-    implementation(libs.appcompat)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.test.junit)
 
-    androidTestImplementation(libs.junit.ext)
-    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
