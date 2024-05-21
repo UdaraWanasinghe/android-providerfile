@@ -11,6 +11,8 @@ import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForString
 
 internal object MediaStoreHelper {
 
+    private const val TAG = "MediaStoreHelper"
+
     fun getName(context: Context, uri: Uri): String? {
         return queryForString(context, uri, MediaStore.MediaColumns.DISPLAY_NAME)
     }
@@ -35,7 +37,8 @@ internal object MediaStoreHelper {
             cursor = resolver.query(uri, arrayOf(MediaStore.MediaColumns._ID), null, null, null)
             cursor != null && cursor.count > 0
         } catch (e: Exception) {
-            Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
+            val message = e.message ?: e::class.simpleName ?: "Unknown error"
+            Logger.e(TAG, message)
             false
         } finally {
             cursor?.closeQuietly()

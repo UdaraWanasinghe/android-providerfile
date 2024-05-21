@@ -15,10 +15,10 @@ import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.lastMod
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.length
 
 internal class SingleDocumentFile(
-    parent: ProviderFile?,
+    override val parent: ProviderFile?,
     private val context: Context,
-    override val uri: Uri
-) : ProviderFile(parent) {
+    override val uri: Uri,
+) : ProviderFile() {
 
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         throw UnsupportedOperationException()

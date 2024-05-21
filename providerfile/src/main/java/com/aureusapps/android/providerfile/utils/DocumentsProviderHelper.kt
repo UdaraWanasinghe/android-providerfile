@@ -22,7 +22,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.text.TextUtils
-import android.util.Log
 import androidx.core.provider.DocumentsContractCompat.DocumentCompat
 
 internal object DocumentsProviderHelper {
@@ -30,7 +29,7 @@ internal object DocumentsProviderHelper {
     private const val TAG = "DocumentFile"
 
     @JvmStatic
-    fun isVirtual(context: Context, self: Uri?): Boolean {
+    fun isVirtual(context: Context, self: Uri): Boolean {
         return if (!DocumentsContract.isDocumentUri(context, self)) {
             false
         } else getFlags(
@@ -58,7 +57,7 @@ internal object DocumentsProviderHelper {
         }
     }
 
-    fun getFlags(context: Context, self: Uri?): Long {
+    private fun getFlags(context: Context, self: Uri): Long {
         return queryForLong(context, self, DocumentsContract.Document.COLUMN_FLAGS, 0)
     }
 
@@ -70,20 +69,16 @@ internal object DocumentsProviderHelper {
     @JvmStatic
     fun isFile(context: Context, self: Uri): Boolean {
         val type = getRawType(context, self)
-        return if (DocumentsContract.Document.MIME_TYPE_DIR == type || TextUtils.isEmpty(type)) {
-            false
-        } else {
-            true
-        }
+        return !(DocumentsContract.Document.MIME_TYPE_DIR == type || TextUtils.isEmpty(type))
     }
 
     @JvmStatic
-    fun lastModified(context: Context, self: Uri?): Long {
+    fun lastModified(context: Context, self: Uri): Long {
         return queryForLong(context, self, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0)
     }
 
     @JvmStatic
-    fun length(context: Context, self: Uri?): Long {
+    fun length(context: Context, self: Uri): Long {
         return queryForLong(context, self, DocumentsContract.Document.COLUMN_SIZE, 0)
     }
 
@@ -97,9 +92,7 @@ internal object DocumentsProviderHelper {
         }
 
         // Ignore documents without MIME
-        return if (TextUtils.isEmpty(getRawType(context, self))) {
-            false
-        } else true
+        return !TextUtils.isEmpty(getRawType(context, self))
     }
 
     @JvmStatic
@@ -135,67 +128,79 @@ internal object DocumentsProviderHelper {
     }
 
     @JvmStatic
-    fun exists(context: Context, self: Uri?): Boolean {
+    fun exists(context: Context, self: Uri): Boolean {
         val resolver = context.contentResolver
         var c: Cursor? = null
         return try {
             c = resolver.query(
-                self!!, arrayOf(
+                self,
+                arrayOf(
                     DocumentsContract.Document.COLUMN_DOCUMENT_ID
-                ), null, null, null
+                ),
+                null,
+                null,
+                null
             )
-            c!!.count > 0
+            (c?.count ?: 0) > 0
         } catch (e: Exception) {
-            Log.w(TAG, "Failed query: $e")
+            Logger.w(TAG, "Failed query: $e")
             false
         } finally {
             closeQuietly(c)
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun queryForString(
-        context: Context, self: Uri, column: String,
-        defaultValue: String?
+        context: Context,
+        self: Uri,
+        column: String,
+        defaultValue: String?,
     ): String? {
         val resolver = context.contentResolver
         var c: Cursor? = null
         return try {
             c = resolver.query(self, arrayOf(column), null, null, null)
-            if (c!!.moveToFirst() && !c.isNull(0)) {
+            if (c != null && c.moveToFirst() && !c.isNull(0)) {
                 c.getString(0)
             } else {
                 defaultValue
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed query: $e")
+            Logger.w(TAG, "Failed query: $e")
             defaultValue
         } finally {
             closeQuietly(c)
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun queryForInt(
-        context: Context, self: Uri, column: String,
-        defaultValue: Int
+        context: Context,
+        self: Uri,
+        column: String,
+        defaultValue: Int,
     ): Int {
         return queryForLong(context, self, column, defaultValue.toLong()).toInt()
     }
 
     private fun queryForLong(
-        context: Context, self: Uri?, column: String,
-        defaultValue: Long
+        context: Context,
+        self: Uri,
+        column: String,
+        defaultValue: Long,
     ): Long {
         val resolver = context.contentResolver
         var c: Cursor? = null
         return try {
-            c = resolver.query(self!!, arrayOf(column), null, null, null)
+            c = resolver.query(self, arrayOf(column), null, null, null)
             if (c!!.moveToFirst() && !c.isNull(0)) {
                 c.getLong(0)
             } else {
                 defaultValue
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed query: $e")
+            Logger.w(TAG, "Failed query: $e")
             defaultValue
         } finally {
             closeQuietly(c)

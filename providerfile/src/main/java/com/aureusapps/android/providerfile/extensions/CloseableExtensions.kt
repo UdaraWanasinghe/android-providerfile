@@ -7,6 +7,7 @@ internal fun Closeable.closeQuietly() {
     try {
         close()
     } catch (e: Exception) {
-        Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
+        val message = e.message ?: e::class.simpleName ?: "Unknown error"
+        Logger.e("Closeable", message)
     }
 }

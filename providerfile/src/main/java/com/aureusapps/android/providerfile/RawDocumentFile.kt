@@ -1,13 +1,16 @@
 package com.aureusapps.android.providerfile
 
 import android.net.Uri
-import android.util.Log
 import android.webkit.MimeTypeMap
+import com.aureusapps.android.providerfile.utils.Logger
 import java.io.File
 import java.io.IOException
 import java.util.Locale
 
-internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : ProviderFile(parent) {
+internal class RawDocumentFile(
+    override val parent: ProviderFile?,
+    private var file: File,
+) : ProviderFile() {
 
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         // Tack on extension when valid MIME type provided
@@ -24,7 +27,7 @@ internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : 
                 null
             }
         } catch (e: IOException) {
-            Log.w(TAG, "Failed to createFile: $e")
+            Logger.w(TAG, "Failed to createFile: $e")
             null
         }
     }
@@ -50,6 +53,7 @@ internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : 
         } else {
             getTypeForName(file.name)
         }
+
     override val isDirectory: Boolean
         get() = file.isDirectory
 
@@ -128,7 +132,7 @@ internal class RawDocumentFile(parent: ProviderFile?, private var file: File) : 
                         success = success and deleteContents(file)
                     }
                     if (!file.delete()) {
-                        Log.w(TAG, "Failed to delete $file")
+                        Logger.w(TAG, "Failed to delete $file")
                         success = false
                     }
                 }

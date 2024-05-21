@@ -10,12 +10,14 @@ import com.aureusapps.android.providerfile.extensions.closeQuietly
 
 internal object ProviderHelper {
 
+    private const val TAG = "ProviderHelper"
+
     @SuppressLint("Recycle")
     fun queryForString(
         context: Context,
         uri: Uri,
         column: String,
-        defaultValue: String? = null
+        defaultValue: String? = null,
     ): String? {
         val resolver = context.contentResolver
         var cursor: Cursor? = null
@@ -27,7 +29,8 @@ internal object ProviderHelper {
                 defaultValue
             }
         } catch (e: Exception) {
-            Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
+            val message = e.message ?: e::class.simpleName ?: "Unknown error"
+            Logger.e(TAG, message)
             defaultValue
         } finally {
             cursor?.closeQuietly()
@@ -39,7 +42,7 @@ internal object ProviderHelper {
         context: Context,
         uri: Uri,
         column: String,
-        defaultValue: Long = 0
+        defaultValue: Long = 0,
     ): Long {
         val resolver = context.contentResolver
         var cursor: Cursor? = null
@@ -51,7 +54,8 @@ internal object ProviderHelper {
                 defaultValue
             }
         } catch (e: Exception) {
-            Logger.e(e.message ?: e::class.simpleName ?: "Unknown error")
+            val message = e.message ?: e::class.simpleName ?: "Unknown error"
+            Logger.e(TAG, message)
             defaultValue
         } finally {
             cursor?.closeQuietly()

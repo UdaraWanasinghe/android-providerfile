@@ -70,7 +70,7 @@ import java.io.File
  * @see android.provider.MediaStore
  * @see android.provider.DocumentsContract
  */
-abstract class ProviderFile internal constructor(
+abstract class ProviderFile {
     /**
      * Return the parent file of this document. Only defined inside of the
      * user-selected tree; you can never escape above the top of the tree.
@@ -81,8 +81,7 @@ abstract class ProviderFile internal constructor(
      * parent offered here is purely a convenience method, and it may be
      * incorrect if the underlying tree structure changes.
      */
-    val parentFile: ProviderFile?
-) {
+    abstract val parent: ProviderFile?
 
     /**
      * Create a new document as a direct child of this directory.
@@ -251,6 +250,7 @@ abstract class ProviderFile internal constructor(
      * @throws UnsupportedOperationException when working with a single document
      * created from [fromSingleUri].
      */
+    @Suppress("unused")
     fun findFile(displayName: String): ProviderFile? {
         for (doc in listFiles()) {
             if (displayName == doc.name) {
@@ -300,6 +300,7 @@ abstract class ProviderFile internal constructor(
          * [uri] will return `file://` Uris for files explored
          * through this tree.
          */
+        @Suppress("unused")
         fun fromFile(file: File): ProviderFile {
             return RawDocumentFile(null, file)
         }
@@ -307,6 +308,7 @@ abstract class ProviderFile internal constructor(
         /**
          * Creates a [ProviderFile] from a file uri.
          */
+        @Suppress("MemberVisibilityCanBePrivate")
         fun fromFileUri(uri: Uri): ProviderFile {
             return RawDocumentFile(null, uri.toFile())
         }
@@ -334,6 +336,7 @@ abstract class ProviderFile internal constructor(
          * @param treeUri the [Intent.getData] from a successful
          * [Intent.ACTION_OPEN_DOCUMENT_TREE] request.
          */
+        @Suppress("MemberVisibilityCanBePrivate")
         fun fromTreeUri(context: Context, treeUri: Uri): ProviderFile {
             var documentId = DocumentsContractCompat.getTreeDocumentId(treeUri)
             if (DocumentsContractCompat.isDocumentUri(context, treeUri)) {
@@ -361,23 +364,28 @@ abstract class ProviderFile internal constructor(
          * Test if given Uri is backed by a
          * [android.provider.DocumentsProvider].
          */
+        @Suppress("MemberVisibilityCanBePrivate")
         fun isDocumentUri(context: Context, uri: Uri): Boolean {
             return DocumentsContractCompat.isDocumentUri(context, uri)
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun isTreeUri(uri: Uri): Boolean {
             val paths = uri.pathSegments
             return paths.size > 0 && paths[0] == PATH_TREE
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         fun isMediaUri(uri: Uri): Boolean {
             return uri.authority == AUTHORITY_MEDIA
         }
 
+        @Suppress("unused")
         fun isFileUri(uri: Uri): Boolean {
             return uri.scheme == ContentResolver.SCHEME_FILE
         }
 
+        @Suppress("unused")
         fun fromUri(context: Context, uri: Uri): ProviderFile? {
             return when (uri.scheme) {
                 ContentResolver.SCHEME_FILE -> fromFileUri(uri)

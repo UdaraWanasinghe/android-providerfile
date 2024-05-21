@@ -7,16 +7,20 @@ internal object Logger {
 
     private const val TAG = "ProviderFile"
 
-    fun d(msg: String) {
+    fun e(tag: String, msg: String) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, msg)
+            Log.e(getTag(tag), msg)
         }
     }
 
-    fun e(msg: String) {
+    fun w(tag: String, msg: String) {
         if (BuildConfig.DEBUG) {
-            Log.e(TAG, msg)
+            Log.w(getTag(tag), msg)
         }
+    }
+
+    private fun getTag(tag: String): String {
+        return "$TAG-$tag"
     }
 
 }

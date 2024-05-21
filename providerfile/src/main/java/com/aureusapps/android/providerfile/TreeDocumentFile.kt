@@ -5,7 +5,6 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
-import android.util.Log
 import com.aureusapps.android.providerfile.extensions.closeQuietly
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canRead
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.canWrite
@@ -17,12 +16,13 @@ import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isFile
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.isVirtual
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.lastModified
 import com.aureusapps.android.providerfile.utils.DocumentsProviderHelper.length
+import com.aureusapps.android.providerfile.utils.Logger
 
 internal class TreeDocumentFile(
-    parent: ProviderFile?,
+    override val parent: ProviderFile?,
     private val context: Context,
-    override var uri: Uri
-) : ProviderFile(parent) {
+    override var uri: Uri,
+) : ProviderFile() {
 
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         val result = createFile(context, uri, mimeType, displayName)
@@ -106,7 +106,7 @@ internal class TreeDocumentFile(
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed query: $e")
+            Logger.w(TAG, "Failed query: $e")
         } finally {
             c?.closeQuietly()
         }
@@ -137,7 +137,7 @@ internal class TreeDocumentFile(
             context: Context,
             uri: Uri,
             mimeType: String,
-            displayName: String
+            displayName: String,
         ): Uri? {
             return try {
                 DocumentsContract.createDocument(

@@ -7,8 +7,10 @@ import com.aureusapps.android.providerfile.utils.ProviderHelper
 
 class MediaProviderFile(
     private val context: Context,
-    override val uri: Uri
-) : ProviderFile(null) {
+    override val uri: Uri,
+) : ProviderFile() {
+
+    override val parent: ProviderFile? = null
 
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         throw UnsupportedOperationException()
