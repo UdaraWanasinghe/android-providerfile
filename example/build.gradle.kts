@@ -9,8 +9,7 @@ plugins {
 }
 
 class Props(project: Project) {
-    private val groupId = project.findProperty(GROUP_ID)
-    val packageName = "$groupId.providerfile.example"
+    val groupId = project.findProperty(GROUP_ID)
     val versionCode = project.findProperty(VERSION_CODE) as Int
     val versionName = project.findProperty(VERSION_NAME) as String
 }
@@ -18,11 +17,11 @@ class Props(project: Project) {
 val props = Props(project)
 
 android {
-    namespace = props.packageName
+    namespace = "${props.groupId}.providerfile.example"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = props.packageName
+        applicationId = "${props.groupId}.providerfile.example"
         minSdk = 21
         targetSdk = 34
         versionCode = props.versionCode
@@ -51,9 +50,4 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.android.material)
     implementation(libs.androidx.constraintlayout)
-
-    testImplementation(libs.test.junit)
-
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.espresso.core)
 }
