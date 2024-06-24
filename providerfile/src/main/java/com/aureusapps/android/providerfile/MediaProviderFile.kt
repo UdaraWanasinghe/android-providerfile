@@ -9,7 +9,6 @@ class MediaProviderFile(
     private val context: Context,
     override val uri: Uri,
 ) : ProviderFile() {
-
     override val parent: ProviderFile? = null
 
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
@@ -63,5 +62,4 @@ class MediaProviderFile(
     override fun renameTo(displayName: String): Boolean {
         throw UnsupportedOperationException()
     }
-
 }

@@ -9,7 +9,6 @@ import android.net.Uri
 import com.aureusapps.android.providerfile.extensions.closeQuietly
 
 internal object ProviderHelper {
-
     private const val TAG = "ProviderHelper"
 
     @SuppressLint("Recycle")
@@ -69,5 +68,4 @@ internal object ProviderHelper {
     fun canWrite(context: Context, uri: Uri): Boolean {
         return context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) == PackageManager.PERMISSION_GRANTED
     }
-
 }

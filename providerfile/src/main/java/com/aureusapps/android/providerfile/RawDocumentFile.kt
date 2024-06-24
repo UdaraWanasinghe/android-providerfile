@@ -11,7 +11,6 @@ internal class RawDocumentFile(
     override val parent: ProviderFile?,
     private var file: File,
 ) : ProviderFile() {
-
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         // Tack on extension when valid MIME type provided
         var name = displayName
@@ -80,8 +79,7 @@ internal class RawDocumentFile(
     }
 
     override fun delete(): Boolean {
-        deleteContents(file)
-        return file.delete()
+        return file.deleteRecursively()
     }
 
     override fun exists(): Boolean {
@@ -110,7 +108,6 @@ internal class RawDocumentFile(
     }
 
     companion object {
-
         private fun getTypeForName(name: String): String {
             val lastDot = name.lastIndexOf('.')
             if (lastDot >= 0) {
@@ -122,24 +119,5 @@ internal class RawDocumentFile(
             }
             return "application/octet-stream"
         }
-
-        private fun deleteContents(dir: File): Boolean {
-            val files = dir.listFiles()
-            var success = true
-            if (files != null) {
-                for (file in files) {
-                    if (file.isDirectory) {
-                        success = success and deleteContents(file)
-                    }
-                    if (!file.delete()) {
-                        Logger.w(TAG, "Failed to delete $file")
-                        success = false
-                    }
-                }
-            }
-            return success
-        }
-
     }
-
 }

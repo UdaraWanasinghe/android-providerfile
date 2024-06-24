@@ -23,7 +23,6 @@ internal class TreeDocumentFile(
     private val context: Context,
     override var uri: Uri,
 ) : ProviderFile() {
-
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         val result = createFile(context, uri, mimeType, displayName)
         return if (result != null) TreeDocumentFile(this, context, result) else null
@@ -132,7 +131,6 @@ internal class TreeDocumentFile(
     }
 
     companion object {
-
         private fun createFile(
             context: Context,
             uri: Uri,
@@ -150,6 +148,5 @@ internal class TreeDocumentFile(
                 null
             }
         }
-
     }
 }

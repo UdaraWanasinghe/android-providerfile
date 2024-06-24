@@ -19,7 +19,6 @@ internal class SingleDocumentFile(
     private val context: Context,
     override val uri: Uri,
 ) : ProviderFile() {
-
     override fun createFile(mimeType: String, displayName: String): ProviderFile? {
         throw UnsupportedOperationException()
     }
@@ -78,5 +77,4 @@ internal class SingleDocumentFile(
     override fun renameTo(displayName: String): Boolean {
         throw UnsupportedOperationException()
     }
-
 }

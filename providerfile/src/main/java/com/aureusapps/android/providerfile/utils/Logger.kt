@@ -4,7 +4,6 @@ import android.util.Log
 import com.aureusapps.android.providerfile.BuildConfig
 
 internal object Logger {
-
     private const val TAG = "ProviderFile"
 
     fun e(tag: String, msg: String) {
@@ -22,5 +21,4 @@ internal object Logger {
     private fun getTag(tag: String): String {
         return "$TAG-$tag"
     }
-
 }

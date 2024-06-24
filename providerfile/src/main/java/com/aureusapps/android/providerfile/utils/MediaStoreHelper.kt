@@ -10,7 +10,6 @@ import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForLong
 import com.aureusapps.android.providerfile.utils.ProviderHelper.queryForString
 
 internal object MediaStoreHelper {
-
     private const val TAG = "MediaStoreHelper"
 
     fun getName(context: Context, uri: Uri): String? {
@@ -44,5 +43,4 @@ internal object MediaStoreHelper {
             cursor?.closeQuietly()
         }
     }
-
 }

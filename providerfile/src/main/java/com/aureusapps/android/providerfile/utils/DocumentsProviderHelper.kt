@@ -25,7 +25,6 @@ import android.text.TextUtils
 import androidx.core.provider.DocumentsContractCompat.DocumentCompat
 
 internal object DocumentsProviderHelper {
-
     private const val TAG = "DocumentFile"
 
     @JvmStatic
