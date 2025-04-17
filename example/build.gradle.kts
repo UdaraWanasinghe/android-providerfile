@@ -18,12 +18,12 @@ val props = Props(project)
 
 android {
     namespace = "${props.groupId}.providerfile.example"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "${props.groupId}.providerfile.example"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 35
         versionCode = props.versionCode
         versionName = props.versionName
 
